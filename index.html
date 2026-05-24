@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#6C63FF" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>🐾 PawTrainer</title>
+  <style>
+    :root {
+      --primary: #6C63FF;
+      --primary-dark: #4e46d4;
+      --accent: #FF6584;
+      --green: #43d9a4;
+      --yellow: #FFD166;
+      --bg: #0f0f1a;
+      --surface: #1a1a2e;
+      --surface2: #16213e;
+      --card: #1e1e35;
+      --text: #e8e8f0;
+      --muted: #8888aa;
+      --border: #2a2a45;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html { scroll-behavior: smooth; }
+    body { font-family:'Segoe UI',system-ui,sans-serif; background:var(--bg); color:var(--text); min-height:100vh; padding-bottom:80px; }
+
+    /* BOTTOM NAV (mobile-first) */
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--surface); border-top:1px solid var(--border); display:flex; z-index:100; padding-bottom:env(safe-area-inset-bottom); }
+    .bn-item { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:10px 4px 8px; cursor:pointer; border:none; background:none; color:var(--muted); font-size:0.65rem; gap:4px; transition:.15s; }
+    .bn-item .bn-icon { font-size:1.4rem; transition:.2s; }
+    .bn-item.active { color:var(--primary); }
+    .bn-item.active .bn-icon { transform:translateY(-2px); }
+
+    /* TOP HEADER */
+    header { background:var(--surface); border-bottom:1px solid var(--border); padding:14px 20px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:99; }
+    .logo { font-size:1.2rem; font-weight:800; color:var(--primary); }
+    .header-right { display:flex; align-items:center; gap:10px; }
+    .avatar { width:34px; height:34px; border-radius:50%; background:var(--primary); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; }
+
+    /* PAGES */
+    .page { display:none; padding:16px; max-width:600px; margin:0 auto; }
+    .page.active { display:block; }
+
+    /* HERO */
+    .hero { text-align:center; padding:32px 16px 24px; }
+    .hero-emoji { font-size:4rem; margin-bottom:12px; display:block; animation:bounce 2s infinite; }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+    .hero h1 { font-size:1.9rem; font-weight:900; background:linear-gradient(135deg,var(--primary),var(--accent)); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text; line-height:1.2; margin-bottom:10px; }
+    .hero p { color:var(--muted); font-size:0.95rem; margin-bottom:20px; }
+    .hero-btns { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; }
+
+    /* BUTTONS */
+    .btn { padding:11px 22px; border-radius:12px; border:none; cursor:pointer; font-size:0.9rem; font-weight:600; transition:all .2s; display:inline-flex; align-items:center; gap:6px; }
+    .btn:active { transform:scale(.96); }
+    .btn-primary { background:var(--primary); color:#fff; }
+    .btn-outline { background:transparent; color:var(--primary); border:2px solid var(--primary); }
+    .btn-sm { padding:8px 14px; font-size:0.8rem; border-radius:10px; }
+    .btn-danger { background:#ff4757; color:#fff; }
+    .btn-green { background:var(--green); color:#0a2016; font-weight:700; }
+    .btn-full { width:100%; justify-content:center; }
+
+    /* SECTION HEADER */
+    .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:10px; }
+    .section-header h2 { font-size:1.15rem; font-weight:700; }
+
+    /* CARDS */
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .grid.single { grid-template-columns:1fr; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; }
+
+    /* FEATURE CARDS */
+    .feature-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px; text-align:center; }
+    .feature-icon { font-size:2rem; margin-bottom:8px; }
+    .feature-card h3 { font-size:0.9rem; margin-bottom:6px; }
+    .feature-card p { color:var(--muted); font-size:0.78rem; line-height:1.4; }
+
+    /* DOG CARD */
+    .dog-card { background:var(--card); border:1.5px solid var(--border); border-radius:16px; padding:16px; cursor:pointer; transition:all .2s; }
+    .dog-card:active { transform:scale(.97); border-color:var(--primary); }
+    .dog-avatar { font-size:2.5rem; text-align:center; background:var(--surface2); border-radius:12px; padding:10px; margin-bottom:10px; }
+    .dog-name { font-size:1rem; font-weight:700; text-align:center; }
+    .dog-breed { color:var(--muted); font-size:0.75rem; text-align:center; margin:3px 0 10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .xp-bar { background:var(--surface2); border-radius:99px; height:6px; margin-top:6px; overflow:hidden; }
+    .xp-fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--primary),var(--accent)); transition:width .6s ease; }
+    .level-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:99px; font-size:0.7rem; font-weight:600; }
+    .level-principiante { background:#1e3a2e; color:var(--green); }
+    .level-intermedio { background:#3a2e1a; color:var(--yellow); }
+    .level-avanzado { background:#3a1a1a; color:var(--accent); }
+    .stats-row { display:flex; justify-content:space-around; margin-top:10px; padding-top:10px; border-top:1px solid var(--border); }
+    .stat { text-align:center; }
+    .stat-num { font-size:1.1rem; font-weight:700; color:var(--primary); }
+    .stat-label { font-size:0.65rem; color:var(--muted); }
+
+    /* EXERCISE */
+    .ex-list { display:flex; flex-direction:column; gap:10px; }
+    .ex-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; display:flex; align-items:flex-start; gap:12px; }
+    .ex-icon { font-size:1.8rem; background:var(--surface2); padding:8px; border-radius:10px; min-width:46px; text-align:center; flex-shrink:0; }
+    .ex-info { flex:1; min-width:0; }
+    .ex-info h4 { font-size:0.9rem; margin-bottom:4px; }
+    .ex-info p { color:var(--muted); font-size:0.75rem; line-height:1.3; margin-bottom:6px; }
+    .ex-meta { display:flex; gap:6px; flex-wrap:wrap; align-items:center; }
+    .tag { padding:2px 8px; border-radius:99px; font-size:0.68rem; font-weight:600; white-space:nowrap; }
+    .tag-cat { background:#1e2a3e; color:#7eb3ff; }
+    .tag-easy { background:#1e3a2e; color:var(--green); }
+    .tag-mid { background:#3a2e1a; color:var(--yellow); }
+    .tag-hard { background:#3a1a1a; color:var(--accent); }
+    .ex-xp { color:var(--yellow); font-weight:700; font-size:0.85rem; white-space:nowrap; flex-shrink:0; align-self:center; }
+
+    /* TABS */
+    .tabs { display:flex; gap:0; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:none; border-bottom:1px solid var(--border); margin-bottom:16px; }
+    .tabs::-webkit-scrollbar { display:none; }
+    .tab { flex-shrink:0; background:none; border:none; color:var(--muted); padding:9px 14px; cursor:pointer; font-size:0.82rem; border-bottom:2px solid transparent; margin-bottom:-1px; white-space:nowrap; transition:.15s; }
+    .tab.active { color:var(--primary); border-bottom-color:var(--primary); font-weight:600; }
+
+    /* SESSION */
+    .session-header { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; margin-bottom:16px; }
+    .session-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+    .session-dog { font-size:1.1rem; font-weight:700; }
+    .session-timer { font-size:1.8rem; font-weight:900; color:var(--primary); font-variant-numeric:tabular-nums; }
+    .session-btns { display:flex; gap:8px; }
+    .log-list { display:flex; flex-direction:column; gap:10px; }
+    .log-item { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px; }
+    .log-item-top { display:flex; align-items:center; gap:10px; margin-bottom:10px; }
+    .log-ex-icon { font-size:1.5rem; background:var(--surface2); padding:8px; border-radius:8px; }
+    .log-ex-name { font-size:0.9rem; font-weight:600; }
+    .log-ex-xp { color:var(--muted); font-size:0.75rem; }
+    .result-btns { display:flex; gap:6px; flex-wrap:wrap; }
+    .result-btn { flex:1; min-width:calc(50% - 3px); padding:7px 4px; border-radius:8px; border:1.5px solid var(--border); background:var(--surface2); color:var(--muted); font-size:0.75rem; cursor:pointer; text-align:center; transition:.15s; }
+    .result-btn:active { transform:scale(.95); }
+    .result-btn.selected-excelente { border-color:var(--green); background:#1e3a2e; color:var(--green); font-weight:700; }
+    .result-btn.selected-bien { border-color:var(--primary); background:#1a1e3a; color:#9b96ff; font-weight:700; }
+    .result-btn.selected-regular { border-color:var(--yellow); background:#3a2e1a; color:var(--yellow); font-weight:700; }
+    .result-btn.selected-mal { border-color:var(--accent); background:#3a1a1e; color:var(--accent); font-weight:700; }
+    .result-btn.selected-omitido { border-color:var(--muted); background:#1e1e2e; color:var(--muted); font-weight:700; }
+    .xp-earned { color:var(--yellow); font-size:0.8rem; font-weight:700; text-align:right; margin-top:6px; min-height:18px; }
+
+    /* ACHIEVEMENTS */
+    .ach-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .ach-card { background:var(--card); border:1.5px solid var(--border); border-radius:14px; padding:14px; text-align:center; transition:.2s; }
+    .ach-card.unlocked { border-color:var(--yellow); background:#1a180a; }
+    .ach-icon { font-size:2rem; margin-bottom:6px; filter:grayscale(.85); }
+    .ach-card.unlocked .ach-icon { filter:none; }
+    .ach-name { font-size:0.78rem; font-weight:600; margin-bottom:3px; }
+    .ach-desc { font-size:0.68rem; color:var(--muted); line-height:1.3; }
+    .ach-xp { color:var(--yellow); font-size:0.75rem; font-weight:700; margin-top:5px; }
+    .ach-progress { color:var(--muted); font-size:0.68rem; margin-top:3px; }
+    .ach-done { color:var(--green); font-size:0.7rem; margin-top:3px; }
+
+    /* MODAL */
+    .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.75); z-index:200; display:flex; align-items:flex-end; justify-content:center; opacity:0; pointer-events:none; transition:opacity .25s; }
+    .modal-overlay.open { opacity:1; pointer-events:all; }
+    .modal { background:var(--surface); border:1px solid var(--border); border-radius:24px 24px 0 0; padding:24px 20px calc(24px + env(safe-area-inset-bottom)); width:100%; max-height:90vh; overflow-y:auto; transform:translateY(100%); transition:transform .3s cubic-bezier(.4,0,.2,1); }
+    .modal-overlay.open .modal { transform:translateY(0); }
+    .modal-handle { width:40px; height:4px; background:var(--border); border-radius:99px; margin:0 auto 18px; }
+    .modal h3 { font-size:1.1rem; margin-bottom:18px; }
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; color:var(--muted); font-size:0.8rem; margin-bottom:6px; }
+    .form-group input,.form-group select,.form-group textarea { width:100%; background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:10px 14px; border-radius:10px; font-size:0.95rem; outline:none; transition:border .15s; -webkit-appearance:none; }
+    .form-group input:focus,.form-group select:focus { border-color:var(--primary); }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .modal-actions { display:flex; gap:10px; margin-top:18px; }
+    .modal-actions .btn { flex:1; justify-content:center; }
+
+    /* TOAST */
+    .toast { position:fixed; bottom:calc(76px + env(safe-area-inset-bottom)); left:16px; right:16px; background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:12px 18px; font-size:0.88rem; z-index:999; transform:translateY(20px); opacity:0; transition:all .3s; box-shadow:0 8px 32px rgba(0,0,0,.5); text-align:center; }
+    .toast.show { transform:translateY(0); opacity:1; }
+    .toast.success { border-color:var(--green); }
+    .toast.error { border-color:var(--accent); }
+
+    /* DOG SELECTOR for session */
+    .dog-selector { display:flex; flex-direction:column; gap:10px; }
+    .dog-select-item { background:var(--card); border:1.5px solid var(--border); border-radius:14px; padding:14px; display:flex; align-items:center; gap:14px; cursor:pointer; transition:.15s; }
+    .dog-select-item:active { border-color:var(--primary); transform:scale(.98); }
+    .dog-select-avatar { font-size:2rem; background:var(--surface2); padding:8px 12px; border-radius:10px; }
+    .dog-select-info { flex:1; }
+    .dog-select-name { font-weight:700; font-size:1rem; }
+    .dog-select-sub { color:var(--muted); font-size:0.78rem; margin-top:2px; }
+    .arrow { color:var(--muted); font-size:1.2rem; }
+
+    /* EMPTY STATE */
+    .empty { text-align:center; padding:48px 20px; color:var(--muted); }
+    .empty-icon { font-size:3rem; margin-bottom:12px; }
+    .empty p { font-size:0.9rem; margin-bottom:16px; }
+
+    /* DIVIDER */
+    hr { border:none; border-top:1px solid var(--border); margin:16px 0; }
+
+    /* SELECT (dog) for achievements */
+    .select-styled { background:var(--surface2); border:1px solid var(--border); color:var(--text); padding:10px 14px; border-radius:12px; font-size:0.9rem; width:100%; -webkit-appearance:none; outline:none; margin-bottom:16px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🐾 PawTrainer</div>
+  <div class="header-right">
+    <div class="avatar">M</div>
+  </div>
+</header>
+
+<!-- PAGES -->
+<div class="page active" id="page-home">
+  <div class="hero">
+    <span class="hero-emoji">🐾</span>
+    <h1>Entrena a tu perro de forma inteligente</h1>
+    <p>Planes personalizados, seguimiento de XP y sistema de logros.</p>
+    <div class="hero-btns">
+      <button class="btn btn-primary" onclick="nav('dogs')">Mis perros 🐕</button>
+      <button class="btn btn-outline" onclick="nav('session')">Entrenar 🏋️</button>
+    </div>
+  </div>
+  <div class="grid">
+    <div class="feature-card"><div class="feature-icon">📋</div><h3>Planes</h3><p>Rutinas adaptadas a cada perro</p></div>
+    <div class="feature-card"><div class="feature-icon">📈</div><h3>Progreso</h3><p>XP, niveles e historial</p></div>
+    <div class="feature-card"><div class="feature-icon">🏆</div><h3>Logros</h3><p>Medallas al alcanzar metas</p></div>
+    <div class="feature-card"><div class="feature-icon">📚</div><h3>Ejercicios</h3><p>10+ ejercicios en 6 categorías</p></div>
+  </div>
+</div>
+
+<div class="page" id="page-dogs">
+  <div class="section-header">
+    <h2>🐕 Mis Perros</h2>
+    <button class="btn btn-primary btn-sm" onclick="openModal('modal-dog')">+ Agregar</button>
+  </div>
+  <div class="grid" id="dogs-grid"></div>
+</div>
+
+<div class="page" id="page-exercises">
+  <div class="section-header"><h2>📚 Ejercicios</h2></div>
+  <div class="tabs" id="ex-tabs">
+    <button class="tab active" onclick="filterEx('all',this)">Todos</button>
+    <button class="tab" onclick="filterEx('básico',this)">Básico</button>
+    <button class="tab" onclick="filterEx('obediencia',this)">Obediencia</button>
+    <button class="tab" onclick="filterEx('trucos',this)">Trucos</button>
+    <button class="tab" onclick="filterEx('agilidad',this)">Agilidad</button>
+    <button class="tab" onclick="filterEx('socialización',this)">Social</button>
+    <button class="tab" onclick="filterEx('comportamiento',this)">Comportamiento</button>
+  </div>
+  <div class="ex-list" id="ex-list"></div>
+</div>
+
+<div class="page" id="page-session">
+  <div id="sess-pick">
+    <div class="section-header"><h2>🎯 Entrenar</h2></div>
+    <p style="color:var(--muted);font-size:.88rem;margin-bottom:14px">Elige un perro para comenzar:</p>
+    <div class="dog-selector" id="sess-dogs"></div>
+  </div>
+  <div id="sess-active" style="display:none">
+    <div class="session-header">
+      <div class="session-top">
+        <div>
+          <div style="color:var(--muted);font-size:.75rem">Entrenando a</div>
+          <div class="session-dog" id="sess-dog-name"></div>
+        </div>
+        <div class="session-timer" id="sess-timer">00:00</div>
+      </div>
+      <div class="session-btns">
+        <button class="btn btn-green btn-sm" onclick="completeSession()">✅ Completar</button>
+        <button class="btn btn-danger btn-sm" onclick="cancelSession()">✖ Cancelar</button>
+      </div>
+    </div>
+    <div class="section-header"><h3 style="font-size:1rem">🏋️ Ejercicios de hoy</h3></div>
+    <div class="log-list" id="log-list"></div>
+  </div>
+</div>
+
+<div class="page" id="page-achievements">
+  <div class="section-header"><h2>🏆 Logros</h2></div>
+  <select class="select-styled" id="ach-dog-sel" onchange="renderAch()">
+    <option value="">— Selecciona un perro —</option>
+  </select>
+  <div class="ach-grid" id="ach-grid"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <button class="bn-item active" onclick="nav('home')" id="bn-home">
+    <span class="bn-icon">🏠</span><span>Inicio</span>
+  </button>
+  <button class="bn-item" onclick="nav('dogs')" id="bn-dogs">
+    <span class="bn-icon">🐕</span><span>Perros</span>
+  </button>
+  <button class="bn-item" onclick="nav('exercises')" id="bn-exercises">
+    <span class="bn-icon">📚</span><span>Ejercicios</span>
+  </button>
+  <button class="bn-item" onclick="nav('session')" id="bn-session">
+    <span class="bn-icon">🎯</span><span>Entrenar</span>
+  </button>
+  <button class="bn-item" onclick="nav('achievements')" id="bn-achievements">
+    <span class="bn-icon">🏆</span><span>Logros</span>
+  </button>
+</nav>
+
+<!-- MODAL: Add dog -->
+<div class="modal-overlay" id="modal-dog" onclick="closeOut(event,'modal-dog')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3>🐕 Nuevo perro</h3>
+    <div class="form-group"><label>Nombre *</label><input id="d-name" placeholder="ej. Buddy" /></div>
+    <div class="form-row">
+      <div class="form-group"><label>Raza</label><input id="d-breed" placeholder="ej. Labrador" /></div>
+      <div class="form-group"><label>Tamaño</label>
+        <select id="d-size"><option value="pequeño">Pequeño</option><option value="mediano" selected>Mediano</option><option value="grande">Grande</option><option value="gigante">Gigante</option></select>
+      </div>
+    </div>
+    <div class="form-group"><label>Sexo</label>
+      <select id="d-gender"><option value="macho">🐕 Macho</option><option value="hembra">🐩 Hembra</option></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeModal('modal-dog')">Cancelar</button>
+      <button class="btn btn-primary" onclick="addDog()">Agregar 🐾</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Session complete -->
+<div class="modal-overlay" id="modal-complete">
+  <div class="modal" style="text-align:center">
+    <div class="modal-handle"></div>
+    <div style="font-size:3.5rem;margin-bottom:10px">🎉</div>
+    <h3 style="margin-bottom:6px">¡Sesión completada!</h3>
+    <p id="comp-summary" style="color:var(--muted);font-size:.85rem;margin-bottom:12px"></p>
+    <div id="comp-xp" style="font-size:2.2rem;font-weight:900;color:var(--yellow);margin-bottom:18px"></div>
+    <div class="form-group" style="text-align:left">
+      <label>Humor del perro</label>
+      <input type="range" id="mood" min="1" max="5" value="4" style="width:100%;accent-color:var(--primary)" />
+      <div style="display:flex;justify-content:space-between;color:var(--muted);font-size:.72rem;margin-top:4px">
+        <span>😴 Cansado</span><span>😊 Normal</span><span>🚀 ¡Genial!</span>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="finalizeSession()">Guardar sesión</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────
+const EXERCISES = [
+  {id:1,name:'Sentarse (Sit)',cat:'básico',diff:'fácil',xp:10,icon:'🐕',desc:'Aprende a sentarse con la orden Siéntate.'},
+  {id:2,name:'Tumbarse (Down)',cat:'básico',diff:'fácil',xp:10,icon:'🐾',desc:'El perro se tumba en el suelo.'},
+  {id:3,name:'Quedarse quieto (Stay)',cat:'obediencia',diff:'medio',xp:20,icon:'✋',desc:'Permanece en su lugar hasta recibir señal.'},
+  {id:4,name:'Venir (Come)',cat:'obediencia',diff:'fácil',xp:15,icon:'📣',desc:'Acude cuando lo llamas.'},
+  {id:5,name:'Talón (Heel)',cat:'obediencia',diff:'difícil',xp:30,icon:'🚶',desc:'Camina junto al dueño sin tirar.'},
+  {id:6,name:'Dame la pata (Shake)',cat:'trucos',diff:'fácil',xp:10,icon:'🤝',desc:'Levanta la pata para saludar.'},
+  {id:7,name:'Gira (Spin)',cat:'trucos',diff:'medio',xp:20,icon:'🌀',desc:'Da una vuelta completa.'},
+  {id:8,name:'Saltar obstáculo',cat:'agilidad',diff:'medio',xp:25,icon:'⬆️',desc:'Salta sobre un obstáculo bajo.'},
+  {id:9,name:'Socialización en parque',cat:'socialización',diff:'fácil',xp:30,icon:'🌳',desc:'Exposición controlada a otros perros.'},
+  {id:10,name:'No morder',cat:'comportamiento',diff:'medio',xp:20,icon:'🦷',desc:'Controlar la presión de la mordida.'},
+];
+
+const ACHIEVEMENTS = [
+  {id:1,name:'Primera Sesión',icon:'🐣',xp:50,desc:'Completaste tu primera sesión',cond:'sessions',val:1},
+  {id:2,name:'Entrena Duro',icon:'💪',xp:100,desc:'Completaste 10 sesiones',cond:'sessions',val:10},
+  {id:3,name:'Maestro',icon:'🏆',xp:500,desc:'Completaste 50 sesiones',cond:'sessions',val:50},
+  {id:4,name:'Primeros Puntos',icon:'⭐',xp:25,desc:'Tu perro acumuló 100 XP',cond:'xp',val:100},
+  {id:5,name:'Perro Estrella',icon:'🌟',xp:100,desc:'Tu perro acumuló 500 XP',cond:'xp',val:500},
+  {id:6,name:'Campeón',icon:'🥇',xp:250,desc:'Tu perro acumuló 1000 XP',cond:'xp',val:1000},
+];
+
+const EMOJIS = ['🐕','🐩','🦮','🐕‍🦺','🐶'];
+const XP_MUL = {excelente:1.5,bien:1,regular:.5,mal:0,omitido:0};
+
+// ── STATE ─────────────────────────────────────────────
+let dogs = JSON.parse(localStorage.getItem('pt_dogs')||'[]');
+let session = null;
+let timerIv = null;
+let secs = 0;
+let exFilter = 'all';
+
+function save(){ localStorage.setItem('pt_dogs', JSON.stringify(dogs)); }
+
+function dogEmoji(d){ return EMOJIS[d.id % EMOJIS.length]; }
+function level(xp){
+  if(xp>=1000) return {l:'avanzado',pct:Math.min((xp-1000)/1000*100,100)};
+  if(xp>=300)  return {l:'intermedio',pct:(xp-300)/700*100};
+  return {l:'principiante',pct:xp/300*100};
+}
+
+// ── NAVIGATION ────────────────────────────────────────
+function nav(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.bn-item').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('bn-'+p).classList.add('active');
+  if(p==='dogs') renderDogs();
+  if(p==='exercises') renderEx();
+  if(p==='session') renderSessDogs();
+  if(p==='achievements'){ fillAchDogSel(); renderAch(); }
+  window.scrollTo(0,0);
+}
+
+// ── DOGS PAGE ─────────────────────────────────────────
+function renderDogs(){
+  const g = document.getElementById('dogs-grid');
+  if(!dogs.length){
+    g.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-icon">🐾</div><p>No tienes perros.<br>¡Agrega el primero!</p><button class="btn btn-primary" onclick="openModal(\"modal-dog\")">+ Agregar perro</button></div>';
+    return;
+  }
+  g.innerHTML = dogs.map(d=>{
+    const lv = level(d.xp||0);
+    return `<div class="dog-card" onclick="nav('session');setTimeout(()=>startSess(${d.id}),50)">
+      <div class="dog-avatar">${dogEmoji(d)}</div>
+      <div class="dog-name">${d.name}</div>
+      <div class="dog-breed">${d.breed||'Raza desconocida'}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <span class="level-badge level-${lv.l}">${lv.l}</span>
+        <span style="color:var(--yellow);font-size:.8rem;font-weight:700">${d.xp||0} XP</span>
+      </div>
+      <div class="xp-bar"><div class="xp-fill" style="width:${lv.pct}%"></div></div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-num">${d.sessions||0}</div><div class="stat-label">Sesiones</div></div>
+        <div class="stat"><div class="stat-num">${countAch(d)}</div><div class="stat-label">Logros</div></div>
+        <div class="stat"><div class="stat-num">${d.gender==='hembra'?'♀':'♂'}</div><div class="stat-label">Sexo</div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function countAch(d){
+  return ACHIEVEMENTS.filter(a=>(a.cond==='sessions'?(d.sessions||0):( d.xp||0))>=a.val).length;
+}
+
+function addDog(){
+  const name=document.getElementById('d-name').value.trim();
+  if(!name){toast('El nombre es obligatorio','error');return;}
+  const d={id:Date.now(),name,breed:document.getElementById('d-breed').value.trim()||null,
+    size:document.getElementById('d-size').value,gender:document.getElementById('d-gender').value,xp:0,sessions:0};
+  dogs.push(d); save();
+  closeModal('modal-dog');
+  document.getElementById('d-name').value='';
+  document.getElementById('d-breed').value='';
+  renderDogs(); fillAchDogSel();
+  toast(`${d.name} agregado 🐾`);
+}
+
+// ── EXERCISES PAGE ────────────────────────────────────
+function renderEx(){
+  const list = document.getElementById('ex-list');
+  const data = exFilter==='all'?EXERCISES:EXERCISES.filter(e=>e.cat===exFilter);
+  list.innerHTML = data.map(e=>{
+    const dc = e.diff==='fácil'?'tag-easy':e.diff==='medio'?'tag-mid':'tag-hard';
+    return `<div class="ex-card">
+      <div class="ex-icon">${e.icon}</div>
+      <div class="ex-info">
+        <h4>${e.name}</h4>
+        <p>${e.desc}</p>
+        <div class="ex-meta">
+          <span class="tag tag-cat">${e.cat}</span>
+          <span class="tag ${dc}">${e.diff}</span>
+        </div>
+      </div>
+      <div class="ex-xp">+${e.xp} XP</div>
+    </div>`;
+  }).join('');
+}
+
+function filterEx(cat,btn){
+  exFilter=cat;
+  document.querySelectorAll('#ex-tabs .tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderEx();
+}
+
+// ── SESSION PAGE ──────────────────────────────────────
+function renderSessDogs(){
+  const c = document.getElementById('sess-dogs');
+  if(!dogs.length){
+    c.innerHTML='<div class="empty"><div class="empty-icon">🐕</div><p>Primero agrega un perro</p><button class="btn btn-primary" onclick="nav(\"dogs\")">Ir a Mis Perros</button></div>';
+    return;
+  }
+  c.innerHTML = dogs.map(d=>{
+    const lv=level(d.xp||0);
+    return `<div class="dog-select-item" onclick="startSess(${d.id})">
+      <div class="dog-select-avatar">${dogEmoji(d)}</div>
+      <div class="dog-select-info">
+        <div class="dog-select-name">${d.name}</div>
+        <div class="dog-select-sub">${d.breed||'Sin raza'} · <span class="level-badge level-${lv.l}" style="font-size:.65rem">${lv.l}</span></div>
+      </div>
+      <div class="arrow">›</div>
+    </div>`;
+  }).join('');
+}
+
+function startSess(dogId){
+  const d = dogs.find(x=>x.id===dogId);
+  if(!d)return;
+  session = {dogId, exercises:{}};
+  document.getElementById('sess-dog-name').textContent = d.name+' '+dogEmoji(d);
+  document.getElementById('sess-pick').style.display='none';
+  document.getElementById('sess-active').style.display='block';
+  secs=0; clearInterval(timerIv);
+  timerIv=setInterval(()=>{
+    secs++;
+    const m=String(Math.floor(secs/60)).padStart(2,'0');
+    const s=String(secs%60).padStart(2,'0');
+    document.getElementById('sess-timer').textContent=m+':'+s;
+  },1000);
+  renderLog();
+}
+
+function renderLog(){
+  const exs = EXERCISES.slice(0,5);
+  document.getElementById('log-list').innerHTML = exs.map(e=>{
+    const done = session?.exercises[e.id];
+    const results = ['excelente','bien','regular','mal','omitido'];
+    const labels = {'excelente':'🌟 Excelente','bien':'✅ Bien','regular':'🟡 Regular','mal':'❌ Mal','omitido':'⏭ Omitir'};
+    const btns = results.map(r=>`<button class="result-btn ${done?.result===r?'selected-'+r:''}" onclick="logEx(${e.id},${e.xp},'${r}')">${labels[r]}</button>`).join('');
+    return `<div class="log-item">
+      <div class="log-item-top">
+        <div class="log-ex-icon">${e.icon}</div>
+        <div><div class="log-ex-name">${e.name}</div><div class="log-ex-xp">+${e.xp} XP base</div></div>
+      </div>
+      <div class="result-btns">${btns}</div>
+      <div class="xp-earned" id="xpe-${e.id}">${done?`+${done.xp} XP ganado ✨`:''}</div>
+    </div>`;
+  }).join('');
+}
+
+function logEx(id,base,result){
+  if(!session)return;
+  const xp=Math.round(base*(XP_MUL[result]||0));
+  session.exercises[id]={result,xp};
+  renderLog();
+}
+
+function completeSession(){
+  if(!session)return;
+  clearInterval(timerIv);
+  const totalXp=Object.values(session.exercises).reduce((s,e)=>s+e.xp,0);
+  const done=Object.keys(session.exercises).length;
+  const mins=Math.floor(secs/60);
+  document.getElementById('comp-summary').textContent=`${mins} min · ${done} ejercicios registrados`;
+  document.getElementById('comp-xp').textContent=`+${totalXp} XP ✨`;
+  session.totalXp=totalXp;
+  openModal('modal-complete');
+}
+
+function finalizeSession(){
+  const d=dogs.find(x=>x.id===session.dogId);
+  if(d){ d.xp=(d.xp||0)+session.totalXp; d.sessions=(d.sessions||0)+1; save(); }
+  closeModal('modal-complete');
+  cancelSession();
+  toast(`¡+${session?.totalXp||0} XP para ${d?.name}! 🎉`);
+  session=null;
+  nav('dogs');
+}
+
+function cancelSession(){
+  clearInterval(timerIv);
+  session=null;
+  document.getElementById('sess-pick').style.display='block';
+  document.getElementById('sess-active').style.display='none';
+  renderSessDogs();
+}
+
+// ── ACHIEVEMENTS PAGE ─────────────────────────────────
+function fillAchDogSel(){
+  const sel=document.getElementById('ach-dog-sel');
+  sel.innerHTML='<option value="">— Selecciona un perro —</option>';
+  dogs.forEach(d=>sel.innerHTML+=`<option value="${d.id}">${dogEmoji(d)} ${d.name}</option>`);
+}
+
+function renderAch(){
+  const id=parseInt(document.getElementById('ach-dog-sel').value);
+  const d=dogs.find(x=>x.id===id);
+  const g=document.getElementById('ach-grid');
+  if(!d){g.innerHTML='<div class="empty" style="grid-column:1/-1"><p>Selecciona un perro</p></div>';return;}
+  g.innerHTML=ACHIEVEMENTS.map(a=>{
+    const val=a.cond==='sessions'?(d.sessions||0):(d.xp||0);
+    const unlocked=val>=a.val;
+    return `<div class="ach-card ${unlocked?'unlocked':''}">
+      <div class="ach-icon">${a.icon}</div>
+      <div class="ach-name">${a.name}</div>
+      <div class="ach-desc">${a.desc}</div>
+      <div class="ach-xp">+${a.xp} XP</div>
+      ${unlocked?'<div class="ach-done">✅ Obtenido</div>':`<div class="ach-progress">${val} / ${a.val}</div>`}
+    </div>`;
+  }).join('');
+}
+
+// ── MODALS ────────────────────────────────────────────
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+function closeOut(e,id){if(e.target.id===id)closeModal(id);}
+
+// ── TOAST ─────────────────────────────────────────────
+function toast(msg,type='success'){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className=`toast show ${type}`;
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+
+// ── INIT ──────────────────────────────────────────────
+if(!dogs.length){
+  dogs=[
+    {id:1,name:'Buddy',breed:'Labrador Retriever',size:'grande',gender:'macho',xp:132,sessions:1},
+    {id:2,name:'Luna',breed:'Golden Retriever',size:'grande',gender:'hembra',xp:0,sessions:0},
+  ];
+  save();
+}
+renderEx();
+fillAchDogSel();
+</script>
+</body>
+</html>
